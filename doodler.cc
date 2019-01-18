@@ -30,8 +30,8 @@ void doodler::textureLoad() {
 	glGenTextures(1, &textureid);
 	glBindTexture(GL_TEXTURE_2D, textureid);
 	texture = SOIL_load_image("doodler.png", &texw, &texh, 0, SOIL_LOAD_RGBA);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, texw, texh, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
@@ -44,16 +44,22 @@ doodler::doodler(float setx, float sety) {
 	y = sety;
 	vspeed = VSPEED;
 	hspeed = 0;
-	verts = new float[32]{
+	verts = new float[16]{
 		//X	Y	TEXX	TEXY
-		-0.5f,	-0.5f,	-1.0,	-1.0,
-		-0.5f,	 0.5f,	-1.0,	 1.0,
-		 0.5f,	 0.5f,	 1.0,	 1.0,
-		 0.5f,	-0.5f,	 1.0,	-1.0
+		-0.5f,	-0.5f,
+		-0.5f,	 0.5f,
+		 0.5f,	 0.5f,
+		 0.5f,	-0.5f
 	};
 	indices = new unsigned int[6]{
 		0, 1, 2,
 		0, 2, 3
+	};
+	texcoords = new float[8] {
+		-1.0,	-1.0,
+                -1.0,	 1.0,
+                 1.0,	 1.0,
+                 1.0,	-1.0
 	};
 	doodler::shadersInit();
 	glGenBuffers(1, &vbo);
@@ -65,8 +71,8 @@ doodler::doodler(float setx, float sety) {
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	doodler::textureLoad();
-	glVertexAttribPointer(0, 2, GL_FLOAT, false, 4*sizeof(float), 0); 
-	glVertexAttribPointer(1, 2, GL_FLOAT, false, 4*sizeof(float), reinterpret_cast<void*>(2*sizeof(float)));
+	glVertexAttribPointer(0, 2, GL_FLOAT, false, 2*sizeof(float), 0); 
+	glVertexAttribPointer(1, 2, GL_FLOAT, false, 2*sizeof(float), reinterpret_cast<void*>(2*sizeof(float)));
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 void doodler::move(int8_t direction) {
@@ -90,9 +96,8 @@ void doodler::move(int8_t direction) {
 void doodler::draw() {
 		glLinkProgram(program);
 		glUseProgram(program);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBindTexture(GL_TEXTURE_2D, textureid);
 		glBindVertexArray(ebo);
+		glBindTexture(GL_TEXTURE_2D, textureid);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices);
 }
 
