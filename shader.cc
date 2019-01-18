@@ -15,5 +15,4 @@ const char* fragment_shader =
 	"uniform sampler2D text;\n"
 	"void main() {\n"
 	"	color = texture(text, Texcoord);\n"
-	"//	color = vec4(1.0, 1.0, 1.0, 1.0);\n"
 	"}\n";

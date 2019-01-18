@@ -5,8 +5,8 @@
 #include <cstdio>
 #include "shader.cc"
 #include "doodler.h"
-#define VSPEED 0.4
-#define GRAVITY 0.1
+#define VSPEED 15
+#define GRAVITY 0.3
 bool doodler::platform_underlying() {
 	return 0;
 }
@@ -17,12 +17,7 @@ void doodler::shadersInit() {
 	glShaderSource(vertexshader, 1, &vertex_shader, nullptr);
 	glShaderSource(fragmentshader, 1, &fragment_shader, nullptr);
 	glCompileShader(vertexshader);
-	char log[256];
-	glGetShaderInfoLog(vertexshader, 256, nullptr, log);
-	printf("%s\n", log);
 	glCompileShader(fragmentshader);
-	glGetShaderInfoLog(vertexshader, 256, nullptr, log);
-	printf("%s\n", log);
 	glAttachShader(program, vertexshader);
 	glAttachShader(program, fragmentshader);
 }
@@ -31,8 +26,8 @@ void doodler::textureLoad() {
 	glBindTexture(GL_TEXTURE_2D, textureid);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	texture = SOIL_load_image("doodler.png", &texw, &texh, 0, SOIL_LOAD_RGBA);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texw, texh, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
@@ -47,10 +42,10 @@ doodler::doodler(float setx, float sety) {
 	hspeed = 0;
 	verts = new float[16]{
 		//X	Y	TEXX	TEXY
-		-0.5f,	-0.5f,	-1.0,	-1.0,
-		-0.5f,	 0.5f,	-1.0,	 1.0,
-		 0.5f,	 0.5f,	 1.0,	 1.0,
-		 0.5f,	-0.5f,	 1.0,	-1.0
+		(float)((x-320)/320.0-30.0/640.0),	(float)((y-240)/240.0),	 0.0,	 1.0,
+		(float)((x-320)/320.0-30.0/640.0),	(float)((y-240)/240.0+60.0/480.0),	 0.0,	 0.0,
+		(float)((x-320)/320.0+30.0/640.0),	(float)((y-240)/240.0+60.0/480.0),	 1.0,	 0.0,
+		(float)((x-320)/320.0+30.0/640.0),	(float)((y-240)/240.0),	 1.0,	 1.0
 	};
 	indices = new unsigned int[6]{
 		0, 1, 2,
@@ -73,20 +68,32 @@ doodler::doodler(float setx, float sety) {
 void doodler::move(int8_t direction) {
 	vspeed -= GRAVITY;
 	y += vspeed;
-	if (y < -1 || platform_underlying()) {
+	if (y <= 0 || platform_underlying()) {
 		y = abs(y);
 		vspeed = VSPEED;
 	}
+	//void update();
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	verts[1] = (float)((y-240)/240.0);
+	verts[5] = (float)((y-240)/240.0+60.0/480.0);
+	verts[9] = (float)((y-240)/240.0+60.0/480.0);
+	verts[13] = (float)((y-240)/240.0);
+	
+
 	switch (direction) {
-		case 1: hspeed += 0.1;
-		case -1: hspeed -= 0.1;
+		case 1: hspeed += 5;
+		case -1: hspeed -= 5;
 		default: if(hspeed > 0) {
-				hspeed -= 0.1;
-			 } else {
-				 hspeed += 0.1;
+				hspeed -= 5;
+			 } else if (hspeed < 0){
+				 hspeed += 5;
 			 }
 	}
 	x+=hspeed;
+
+	glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float), verts, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 void doodler::draw() {
 		glLinkProgram(program);
@@ -94,5 +101,8 @@ void doodler::draw() {
 		glBindVertexArray(ebo);
 		glBindTexture(GL_TEXTURE_2D, textureid);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindVertexArray(0);
+		glUseProgram(0);
 }
 
