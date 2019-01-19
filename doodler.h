@@ -1,7 +1,7 @@
 class doodler {
 	private:
-		float x, y, vspeed, hspeed, *verts, *texcoords;
-		double *rendertime = new double;
+		float *texcoords;
+		double rendertime, *verts, vspeed, hspeed, x, y;
 		unsigned int *indices, vbo, vao, ebo, tbo, program, textureid;
 		int texh, texw;
 		unsigned char* texture;

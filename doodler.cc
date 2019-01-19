@@ -6,11 +6,11 @@
 #include <cstdio>
 #include "shader.cc"
 #include "doodler.h"
-#define VSPEED 15
-#define GRAVITY 0.3
+#define VSPEED 1
+#define GRAVITY 20
 
-time_t *lastframe = new time_t;
-time_t *now = new time_t;
+time_t lastframe;
+time_t now;
 
 bool doodler::platform_underlying() {
 	return 0;
@@ -53,7 +53,7 @@ void doodler::update() {
 	verts[4] = (float)((x-320)/320.0+30.0/640.0);
 	verts[6] = (float)((x-320)/320.0+30.0/640.0);
 	//OFFLOAD
-	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), verts, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(double), verts, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	//TEXTURE
 	
@@ -75,17 +75,18 @@ void doodler::update() {
 
 }
 doodler::doodler(float setx, float sety) {
+	time(&lastframe);
 	x = setx;
 	y = sety;
 	flip = 0;
 	vspeed = VSPEED;
 	hspeed = 0;
-	verts = new float[8]{
+	verts = new double[8]{
 		//X	Y
-		(float)((x-320)/320.0-30.0/640.0),	(float)((y-240)/240.0),
-		(float)((x-320)/320.0-30.0/640.0),	(float)((y-240)/240.0+60.0/480.0),
-		(float)((x-320)/320.0+30.0/640.0),	(float)((y-240)/240.0+60.0/480.0),
-		(float)((x-320)/320.0+30.0/640.0),	(float)((y-240)/240.0)
+		(double)((x-320)/320.0-30.0/640.0),	(double)((y-240)/240.0),
+		(double)((x-320)/320.0-30.0/640.0),	(double)((y-240)/240.0+60.0/480.0),
+		(double)((x-320)/320.0+30.0/640.0),	(double)((y-240)/240.0+60.0/480.0),
+		(double)((x-320)/320.0+30.0/640.0),	(double)((y-240)/240.0)
 	};
 	indices = new unsigned int[6]{
 		0, 1, 2,
@@ -104,8 +105,8 @@ doodler::doodler(float setx, float sety) {
 
 		glGenBuffers(1, &vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-			glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), verts, GL_DYNAMIC_DRAW);
-			glVertexAttribPointer(0, 2, GL_FLOAT, false, 2*sizeof(float), 0); 
+			glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(double), verts, GL_DYNAMIC_DRAW);
+			glVertexAttribPointer(0, 2, GL_DOUBLE, false, 2*sizeof(double), 0); 
 			glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -123,7 +124,9 @@ doodler::doodler(float setx, float sety) {
 	glBindVertexArray(0);
 }
 void doodler::move(int8_t direction) {
-	vspeed -= GRAVITY;
+	time(&now);
+	rendertime = difftime(now, lastframe);
+	vspeed -= GRAVITY*rendertime;
 	y += vspeed;
 	if (y <= 0 || platform_underlying()) {
 		y = abs(y);
@@ -131,17 +134,18 @@ void doodler::move(int8_t direction) {
 	}
 	
 	if(direction == 1 && hspeed < 10)
-		hspeed +=0.5;
+		hspeed +=0.5*rendertime;
 	else if (direction == -1 && hspeed > -10)
-		hspeed -=0.5;
+		hspeed -=0.5*rendertime;
 	else {
 		if(hspeed > 0) {
-				hspeed -= 0.5;
+			hspeed -= 0.5*rendertime;
 		} else if (hspeed < 0){
-			 hspeed += 0.5;
+			 hspeed += 0.5*rendertime;
 		}
 	}
 	x+=hspeed;
+	printf("%f %f\n", x, y);
 	if (x > 640)
 		x = 0;
 	else if (x < 0)
@@ -162,5 +166,6 @@ void doodler::draw() {
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindVertexArray(0);
 		glUseProgram(0);
+		time(&lastframe);
 }
 
