@@ -1,5 +1,6 @@
 #include <math.h>
 #include <chrono>
+#include <thread>
 #include <GL/glew.h>
 #include <SOIL/SOIL.h>
 #include <cstdio>
@@ -7,8 +8,7 @@
 #include "doodler.h"
 #define VSPEED 1000
 #define GRAVITY 2800.0
-#define HACCEL 5600.0
-#define HMAXSPEED 5600.0*2000
+#define HACCEL 2000.0
 
 std::chrono::time_point<std::chrono::high_resolution_clock> lastframe, now;
 
@@ -139,9 +139,9 @@ void doodler::move(int8_t direction) {
 		vspeed = VSPEED;
 	}
 	
-	if(direction == 1 && hspeed < HMAXSPEED * rendertime)
+	if (direction == 1 && hspeed < HACCEL * 5)
 		hspeed += HACCEL * rendertime;
-	else if (direction == -1 && hspeed > -HMAXSPEED * rendertime)
+	else if (direction == -1 && hspeed > -HACCEL * 5)
 		hspeed -= HACCEL * rendertime;
 	else {
 		if(hspeed > 0) {
@@ -161,7 +161,7 @@ void doodler::move(int8_t direction) {
 		flip = 1;
 	else if (hspeed < 0)
 		flip = 0;
-	printf("%f\n", hspeed);
+	printf("%f\n FPS", 1/rendertime);
 	doodler::update();
 	}
 void doodler::draw() {
@@ -174,5 +174,6 @@ void doodler::draw() {
 		glBindVertexArray(0);
 		glUseProgram(0);
 		lastframe = std::chrono::high_resolution_clock::now();
+		std::this_thread::sleep_for(std::chrono::milliseconds(5));
 }
 
