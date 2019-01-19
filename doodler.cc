@@ -1,16 +1,16 @@
 #include <math.h>
-#include <ctime>
+#include <chrono>
 #include <GL/glew.h>
-#include <GL/gl.h>
 #include <SOIL/SOIL.h>
 #include <cstdio>
 #include "shader.cc"
 #include "doodler.h"
-#define VSPEED 1
-#define GRAVITY 20
+#define VSPEED 1000
+#define GRAVITY 2800.0
+#define HACCEL 5600.0
+#define HMAXSPEED 5600.0*2000
 
-time_t lastframe;
-time_t now;
+std::chrono::time_point<std::chrono::high_resolution_clock> lastframe, now;
 
 bool doodler::platform_underlying() {
 	return 0;
@@ -25,6 +25,7 @@ void doodler::shadersInit() {
 	glCompileShader(fragmentshader);
 	glAttachShader(program, vertexshader);
 	glAttachShader(program, fragmentshader);
+	glLinkProgram(program);
 }
 void doodler::textureLoad() {
 	glGenTextures(1, &textureid);
@@ -75,7 +76,7 @@ void doodler::update() {
 
 }
 doodler::doodler(float setx, float sety) {
-	time(&lastframe);
+	lastframe = std::chrono::high_resolution_clock::now();
 	x = setx;
 	y = sety;
 	flip = 0;
@@ -123,29 +124,35 @@ doodler::doodler(float setx, float sety) {
 		glBindBuffer(GL_ARRAY_BUFFER, tbo);
 	glBindVertexArray(0);
 }
+doodler::~doodler() {
+	delete[] texcoords;
+       	delete[] verts;
+       	delete[] indices;
+}
 void doodler::move(int8_t direction) {
-	time(&now);
-	rendertime = difftime(now, lastframe);
+	now = std::chrono::high_resolution_clock::now();
+	rendertime = std::chrono::nanoseconds(now-lastframe).count()/1000000000.0;
+	y += vspeed * rendertime;
 	vspeed -= GRAVITY*rendertime;
-	y += vspeed;
 	if (y <= 0 || platform_underlying()) {
 		y = abs(y);
 		vspeed = VSPEED;
 	}
 	
-	if(direction == 1 && hspeed < 10)
-		hspeed +=0.5*rendertime;
-	else if (direction == -1 && hspeed > -10)
-		hspeed -=0.5*rendertime;
+	if(direction == 1 && hspeed < HMAXSPEED * rendertime)
+		hspeed += HACCEL * rendertime;
+	else if (direction == -1 && hspeed > -HMAXSPEED * rendertime)
+		hspeed -= HACCEL * rendertime;
 	else {
 		if(hspeed > 0) {
-			hspeed -= 0.5*rendertime;
+			hspeed -= HACCEL * rendertime;
 		} else if (hspeed < 0){
-			 hspeed += 0.5*rendertime;
+			 hspeed += HACCEL * rendertime;
 		}
+		if ((hspeed > 0 && hspeed < HACCEL * rendertime) || (hspeed < 0 && hspeed > -HACCEL * rendertime))
+			hspeed = 0;
 	}
-	x+=hspeed;
-	printf("%f %f\n", x, y);
+	x+=hspeed*rendertime;
 	if (x > 640)
 		x = 0;
 	else if (x < 0)
@@ -154,10 +161,10 @@ void doodler::move(int8_t direction) {
 		flip = 1;
 	else if (hspeed < 0)
 		flip = 0;
+	printf("%f\n", hspeed);
 	doodler::update();
 	}
 void doodler::draw() {
-		glLinkProgram(program);
 		glUseProgram(program);
 		glBindVertexArray(vao);
 		glBindTexture(GL_TEXTURE_2D, textureid);
@@ -166,6 +173,6 @@ void doodler::draw() {
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindVertexArray(0);
 		glUseProgram(0);
-		time(&lastframe);
+		lastframe = std::chrono::high_resolution_clock::now();
 }
 

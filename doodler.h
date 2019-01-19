@@ -12,6 +12,7 @@ class doodler {
 		void update();
 	public:
 		doodler(float setx, float sety);
+		~doodler();
 		void move(int8_t direction);
 		void draw();
 };
