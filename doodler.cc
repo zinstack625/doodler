@@ -1,4 +1,5 @@
 #include <math.h>
+#include <ctime>
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <SOIL/SOIL.h>
@@ -7,6 +8,10 @@
 #include "doodler.h"
 #define VSPEED 15
 #define GRAVITY 0.3
+
+time_t *lastframe = new time_t;
+time_t *now = new time_t;
+
 bool doodler::platform_underlying() {
 	return 0;
 }
@@ -35,35 +40,87 @@ void doodler::textureLoad() {
 	SOIL_free_image_data(texture);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
+void doodler::update() {
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	//X
+	verts[1] = (float)((y-240)/240.0);
+	verts[3] = (float)((y-240)/240.0+60.0/480.0);
+	verts[5] = (float)((y-240)/240.0+60.0/480.0);
+	verts[7] = (float)((y-240)/240.0);
+	//Y
+	verts[0] = (float)((x-320)/320.0-30.0/640.0);
+	verts[2] = (float)((x-320)/320.0-30.0/640.0);
+	verts[4] = (float)((x-320)/320.0+30.0/640.0);
+	verts[6] = (float)((x-320)/320.0+30.0/640.0);
+	//OFFLOAD
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), verts, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//TEXTURE
+	
+	if (flip) {
+		texcoords[0] = 1.0;
+		texcoords[2] = 1.0;
+		texcoords[4] = 0.0;
+		texcoords[6] = 0.0;
+	} else {
+		texcoords[0] = 0.0;
+		texcoords[2] = 0.0;
+		texcoords[4] = 1.0;
+		texcoords[6] = 1.0;
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, tbo);
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), texcoords, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+}
 doodler::doodler(float setx, float sety) {
 	x = setx;
 	y = sety;
+	flip = 0;
 	vspeed = VSPEED;
 	hspeed = 0;
-	verts = new float[16]{
-		//X	Y	TEXX	TEXY
-		(float)((x-320)/320.0-30.0/640.0),	(float)((y-240)/240.0),	 0.0,	 1.0,
-		(float)((x-320)/320.0-30.0/640.0),	(float)((y-240)/240.0+60.0/480.0),	 0.0,	 0.0,
-		(float)((x-320)/320.0+30.0/640.0),	(float)((y-240)/240.0+60.0/480.0),	 1.0,	 0.0,
-		(float)((x-320)/320.0+30.0/640.0),	(float)((y-240)/240.0),	 1.0,	 1.0
+	verts = new float[8]{
+		//X	Y
+		(float)((x-320)/320.0-30.0/640.0),	(float)((y-240)/240.0),
+		(float)((x-320)/320.0-30.0/640.0),	(float)((y-240)/240.0+60.0/480.0),
+		(float)((x-320)/320.0+30.0/640.0),	(float)((y-240)/240.0+60.0/480.0),
+		(float)((x-320)/320.0+30.0/640.0),	(float)((y-240)/240.0)
 	};
 	indices = new unsigned int[6]{
 		0, 1, 2,
 		0, 2, 3
 	};
+	texcoords = new float[8] {
+		0.0,	1.0,
+		0.0,	0.0,
+		1.0,	0.0,
+		1.0,	1.0
+	};
 	doodler::textureLoad();
 	doodler::shadersInit();
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float), verts, GL_DYNAMIC_DRAW);
-	glGenVertexArrays(1, &ebo);
-	glBindVertexArray(ebo);
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(0, 2, GL_FLOAT, false, 4*sizeof(float), 0); 
-	glVertexAttribPointer(1, 2, GL_FLOAT, false, 4*sizeof(float), reinterpret_cast<void*>(2*sizeof(float)));
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+		glGenBuffers(1, &vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), verts, GL_DYNAMIC_DRAW);
+			glVertexAttribPointer(0, 2, GL_FLOAT, false, 2*sizeof(float), 0); 
+			glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glGenBuffers(1, &ebo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		
+		glGenBuffers(1, &tbo);
+		glBindBuffer(GL_ARRAY_BUFFER, tbo);
+			glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), texcoords, GL_STATIC_DRAW);
+			glVertexAttribPointer(1, 2, GL_FLOAT, false, 2*sizeof(float), 0);
+			glEnableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, tbo);
+	glBindVertexArray(0);
 }
 void doodler::move(int8_t direction) {
 	vspeed -= GRAVITY;
@@ -72,35 +129,36 @@ void doodler::move(int8_t direction) {
 		y = abs(y);
 		vspeed = VSPEED;
 	}
-	//void update();
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-	verts[1] = (float)((y-240)/240.0);
-	verts[5] = (float)((y-240)/240.0+60.0/480.0);
-	verts[9] = (float)((y-240)/240.0+60.0/480.0);
-	verts[13] = (float)((y-240)/240.0);
 	
-
-	switch (direction) {
-		case 1: hspeed += 5;
-		case -1: hspeed -= 5;
-		default: if(hspeed > 0) {
-				hspeed -= 5;
-			 } else if (hspeed < 0){
-				 hspeed += 5;
-			 }
+	if(direction == 1 && hspeed < 10)
+		hspeed +=0.5;
+	else if (direction == -1 && hspeed > -10)
+		hspeed -=0.5;
+	else {
+		if(hspeed > 0) {
+				hspeed -= 0.5;
+		} else if (hspeed < 0){
+			 hspeed += 0.5;
+		}
 	}
 	x+=hspeed;
-
-	glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float), verts, GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
+	if (x > 640)
+		x = 0;
+	else if (x < 0)
+		x = 640;
+	if (hspeed > 0)
+		flip = 1;
+	else if (hspeed < 0)
+		flip = 0;
+	doodler::update();
+	}
 void doodler::draw() {
 		glLinkProgram(program);
 		glUseProgram(program);
-		glBindVertexArray(ebo);
+		glBindVertexArray(vao);
 		glBindTexture(GL_TEXTURE_2D, textureid);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindVertexArray(0);
 		glUseProgram(0);

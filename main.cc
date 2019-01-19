@@ -4,6 +4,21 @@
 #include <stdio.h>
 #include "doodler.h"
 
+int *directionptr;
+void movecallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (action == GLFW_PRESS) {
+		if (key == GLFW_KEY_LEFT)
+			*directionptr = -1;
+		else if (key == GLFW_KEY_RIGHT)
+			*directionptr = 1;
+	} else if (action == GLFW_RELEASE) {
+		if (key == GLFW_KEY_LEFT)
+			*directionptr = 0;
+		else if (key == GLFW_KEY_RIGHT)
+			*directionptr = 0;
+	}
+}
+
 int main(int argc, char* argv[]) {
 	glfwInit();
 	GLFWwindow* window;
@@ -11,14 +26,18 @@ int main(int argc, char* argv[]) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 	window = glfwCreateWindow(640, 480, "Hi", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(0);
 	glewInit();
 	double lastTime = glfwGetTime();
 	int nbFrames = 0;
 	double currentTime = glfwGetTime();
+	int direction = 0;
+	directionptr = &direction;
+	glfwSetKeyCallback(window, movecallback);	
 	doodler* doodler = new class doodler(320, 20);
 		while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
-		doodler->move(0);
+		doodler->move(direction);
 		doodler->draw();
 			// Measure speed
 			nbFrames++;
