@@ -42,14 +42,11 @@ int main(int argc, char* argv[]) {
 	glfwSetKeyCallback(window, movecallback);	
 	srand(time(nullptr));
 	doodler* doodler = new class doodler(rand()%640, rand()%480);
-	class doodler doodler1(rand()%640, rand()%480);
 	lastframe = std::chrono::high_resolution_clock::now();
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
 		doodler->move(direction);
 		doodler->draw();
-		doodler1.move(direction);
-		doodler1.draw();
 		now = std::chrono::high_resolution_clock::now();
 		rendertime = std::chrono::nanoseconds(now-lastframe).count()/1000000000.0;
 		lastframe = std::chrono::high_resolution_clock::now();

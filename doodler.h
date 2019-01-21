@@ -1,18 +1,12 @@
-class doodler {
+#include "spriteclass.h"
+class doodler: public sprite {
 	private:
-		float *texcoords;
-		double *verts, vspeed, hspeed, x, y;
-		unsigned int *indices, vbo, vao, ebo, tbo, program, textureid;
-		int texh, texw;
-		unsigned char* texture;
+		double vspeed, hspeed;
 		bool platform_underlying();
 		bool flip;
-		void shadersInit();
-		void textureLoad();
 		void update();
 	public:
 		doodler(float setx, float sety);
 		~doodler();
 		void move(int8_t direction);
-		void draw();
 };
