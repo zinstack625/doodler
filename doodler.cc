@@ -10,7 +10,7 @@
 #define GRAVITY 2800.0
 #define HACCEL 2000.0
 
-std::chrono::time_point<std::chrono::high_resolution_clock> lastframe, now;
+extern double rendertime;
 
 bool doodler::platform_underlying() {
 	return 0;
@@ -76,7 +76,6 @@ void doodler::update() {
 
 }
 doodler::doodler(float setx, float sety) {
-	lastframe = std::chrono::high_resolution_clock::now();
 	x = setx;
 	y = sety;
 	flip = 0;
@@ -130,8 +129,6 @@ doodler::~doodler() {
        	delete[] indices;
 }
 void doodler::move(int8_t direction) {
-	now = std::chrono::high_resolution_clock::now();
-	rendertime = std::chrono::nanoseconds(now-lastframe).count()/1000000000.0;
 	y += vspeed * rendertime;
 	vspeed -= GRAVITY*rendertime;
 	if (y <= 0 || platform_underlying()) {
@@ -165,15 +162,13 @@ void doodler::move(int8_t direction) {
 	doodler::update();
 	}
 void doodler::draw() {
-		glUseProgram(program);
-		glBindVertexArray(vao);
-		glBindTexture(GL_TEXTURE_2D, textureid);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBindVertexArray(0);
-		glUseProgram(0);
-		lastframe = std::chrono::high_resolution_clock::now();
-		std::this_thread::sleep_for(std::chrono::milliseconds(5));
+	glUseProgram(program);
+	glBindVertexArray(vao);
+	glBindTexture(GL_TEXTURE_2D, textureid);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindVertexArray(0);
+	glUseProgram(0);
 }
 

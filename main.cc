@@ -2,9 +2,16 @@
 #include <GLFW/glfw3.h>
 //#include <GL/gl.h>
 #include <stdio.h>
+#include <cstdlib>
 #include "doodler.h"
+#include <chrono>
+#include <time.h>
+#include <thread>
+#define FRAMERATE 180
 
-int *directionptr;
+static int *directionptr;
+double rendertime;
+
 void movecallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (action == GLFW_PRESS) {
 		if (key == GLFW_KEY_LEFT)
@@ -29,14 +36,24 @@ int main(int argc, char* argv[]) {
 	glfwSwapInterval(0);
 	glewInit();
 	int direction = 0;
+	
+	std::chrono::time_point<std::chrono::high_resolution_clock> lastframe, now;
 	directionptr = &direction;
 	glfwSetKeyCallback(window, movecallback);	
-	doodler* doodler = new class doodler(320, 20);
-	
+	srand(time(nullptr));
+	doodler* doodler = new class doodler(rand()%640, rand()%480);
+	class doodler doodler1(rand()%640, rand()%480);
+	lastframe = std::chrono::high_resolution_clock::now();
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
 		doodler->move(direction);
 		doodler->draw();
+		doodler1.move(direction);
+		doodler1.draw();
+		now = std::chrono::high_resolution_clock::now();
+		rendertime = std::chrono::nanoseconds(now-lastframe).count()/1000000000.0;
+		lastframe = std::chrono::high_resolution_clock::now();
+		std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long>(1000-rendertime*1000)/FRAMERATE));
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
