@@ -36,52 +36,11 @@ void doodler::update() {
 
 
 }
-doodler::doodler(float setx, float sety): sprite(setx, sety) {
-	x = setx;
-	y = sety;
+doodler::doodler(float setx, float sety, float lenght, float height): sprite(setx, sety, lenght, height) {
 	flip = 0;
 	vspeed = VSPEED;
 	hspeed = 0;
-	verts = new double[8]{
-		//X	Y
-		(double)((x-320)/320.0-30.0/640.0),	(double)((y-240)/240.0),
-		(double)((x-320)/320.0-30.0/640.0),	(double)((y-240)/240.0+60.0/480.0),
-		(double)((x-320)/320.0+30.0/640.0),	(double)((y-240)/240.0+60.0/480.0),
-		(double)((x-320)/320.0+30.0/640.0),	(double)((y-240)/240.0)
-	};
-	indices = new unsigned int[6]{
-		0, 1, 2,
-		0, 2, 3
-	};
-	texcoords = new float[8] {
-		0.0,	1.0,
-		0.0,	0.0,
-		1.0,	0.0,
-		1.0,	1.0
-	};
 	doodler::textureLoad("doodler.png");
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-		glGenBuffers(1, &vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-			glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(double), verts, GL_DYNAMIC_DRAW);
-			glVertexAttribPointer(0, 2, GL_DOUBLE, false, 2*sizeof(double), 0); 
-			glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		glGenBuffers(1, &ebo);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_DYNAMIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		
-		glGenBuffers(1, &tbo);
-		glBindBuffer(GL_ARRAY_BUFFER, tbo);
-			glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), texcoords, GL_STATIC_DRAW);
-			glVertexAttribPointer(1, 2, GL_FLOAT, false, 2*sizeof(float), 0);
-			glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, tbo);
-	glBindVertexArray(0);
 }
 doodler::~doodler(){}; 
 void doodler::move(int8_t direction) {

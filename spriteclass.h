@@ -1,6 +1,6 @@
 class sprite {
 	protected:
-		float *texcoords;
+		float *texcoords, slenght, sheight;
 		double *verts, x, y;
 		unsigned int *indices, vbo, vao, ebo, tbo, textureid;
 		static unsigned int program;
@@ -10,7 +10,7 @@ class sprite {
 		void textureLoad(const char* texname);
 		void update();
 	public:
-		sprite(float setx, float sety);
+		sprite(float setx, float sety, float lenght, float height);
 		~sprite();
 		void draw();
 };

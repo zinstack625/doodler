@@ -6,7 +6,7 @@ class doodler: public sprite {
 		bool flip;
 		void update();
 	public:
-		doodler(float setx, float sety);
+		doodler(float setx, float sety, float lenght, float height);
 		~doodler();
 		void move(int8_t direction);
 };

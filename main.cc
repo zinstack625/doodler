@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 	directionptr = &direction;
 	glfwSetKeyCallback(window, movecallback);	
 	srand(time(nullptr));
-	doodler* doodler = new class doodler(rand()%640, rand()%480);
+	doodler* doodler = new class doodler(rand()%640, rand()%480, 60, 60);
 	lastframe = std::chrono::high_resolution_clock::now();
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
