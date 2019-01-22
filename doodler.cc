@@ -6,14 +6,19 @@
 #include <cstdio>
 //#include "shader.cc"
 #include "doodler.h"
-#define VSPEED 1000
-#define GRAVITY 2800.0
+#define VSPEED 700
+#define GRAVITY 1400.0
 #define HACCEL 2000.0
 
 extern double rendertime;
 
 bool doodler::platform_underlying() {
-	return 0;
+	for (int i = 0; i < 10; i++) {
+		if (platformspos[i]+30 > x && platformspos[i]-30 < x && platformsheight[i] < y && platformsheight[i] > y + vspeed * rendertime) {
+			return 1;
+		}
+	}
+       return 0;	
 }
 void doodler::update() {
 	sprite::update();
@@ -73,6 +78,5 @@ void doodler::move(int8_t direction) {
 		flip = 1;
 	else if (hspeed < 0)
 		flip = 0;
-	printf("%f\n FPS", 1/rendertime);
 	doodler::update();
 }

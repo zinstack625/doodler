@@ -1,3 +1,6 @@
+#ifndef SPRITECLASS
+#define SPRITECLASS
+#endif
 class sprite {
 	protected:
 		float *texcoords, slenght, sheight;
