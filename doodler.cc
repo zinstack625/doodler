@@ -11,10 +11,11 @@
 #define HACCEL 2000.0
 
 extern double rendertime;
+extern unsigned int availabletokens;
 
 bool doodler::platform_underlying() {
-	for (int i = 0; i < 10; i++) {
-		if (platformspos[i]+30 > x && platformspos[i]-30 < x && platformsheight[i] < y && platformsheight[i] > y + vspeed * rendertime) {
+	for (int i = 0; i < availabletokens; i++) {
+		if (platformspos[i]+30 > x + hspeed * rendertime && platformspos[i]-30 < x + hspeed * rendertime && platformsheight[i] < y && platformsheight[i] > y + vspeed * rendertime) {
 			return 1;
 		}
 	}
@@ -49,7 +50,8 @@ doodler::doodler(float setx, float sety, float lenght, float height): sprite(set
 }
 doodler::~doodler(){}; 
 void doodler::move(int8_t direction) {
-	y += vspeed * rendertime;
+	if (y + vspeed * rendertime < 240)
+		y += vspeed * rendertime;
 	vspeed -= GRAVITY*rendertime;
 	if (y <= 0 || platform_underlying()) {
 		y = abs(y);
@@ -79,4 +81,8 @@ void doodler::move(int8_t direction) {
 	else if (hspeed < 0)
 		flip = 0;
 	doodler::update();
+}
+void doodler::getheight(int *height, double *speed) {
+	*height = y;
+	*speed = vspeed * rendertime;
 }
