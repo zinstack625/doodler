@@ -1,0 +1,8 @@
+platform.o: platform.cc /usr/include/stdc-predef.h platform.h \
+ spriteclass.h
+
+/usr/include/stdc-predef.h:
+
+platform.h:
+
+spriteclass.h:
