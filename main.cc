@@ -17,7 +17,7 @@
 
 static int *directionptr;
 double rendertime;
-
+unsigned int availabletokens = 20;
 void movecallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (action == GLFW_PRESS) {
 		if (key == GLFW_KEY_LEFT)
@@ -42,23 +42,44 @@ int main(int argc, char* argv[]) {
 	glfwSwapInterval(0);
 	glewInit();
 	int direction = 0;
-	
+	int doodlerheight = 0;
+	double doodlerspeed = 0;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastframe;
 	directionptr = &direction;
 	glfwSetKeyCallback(window, movecallback);	
 	srand(time(nullptr));
-	doodler* doodler = new class doodler(rand()%640, rand()%480, DOODLERWIDTH, DOODLERHEIGHT);
+	doodler* doodler = new class doodler(rand()%640, rand()%480%200, DOODLERWIDTH, DOODLERHEIGHT);
 	background bg(320, 0, 1280, 960);
-	platform* platforms[10];
-	for (int i = 0; i < 10; i++)
+
+	platform* platforms[availabletokens];
+	for (int i = 0; i < availabletokens; i++)
 		platforms[i] = new platform(rand()%640, rand()%480, PLATWIDTH, PLATHEIGHT);
+	int higher = 640;
+	for (int i = 0; i < availabletokens; i++) {
+		do {
+		for (int o = 0; o < availabletokens; o++) {
+			if (platforms[o]->getheight() > platforms[i]->getheight() && platforms[o]->getheight() < higher)
+				higher = platforms[o]->getheight();
+		}
+		delete platforms[i];
+		platforms[i] = new platform(rand()%640, rand()%480, PLATWIDTH, PLATHEIGHT);
+		} while (higher - platforms[i]->getheight() > 220);
+	}
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	lastframe = std::chrono::high_resolution_clock::now();
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
 		bg.draw();
-		for (int i = 0; i < 10; i++) {
+		doodler->getheight(&doodlerheight, &doodlerspeed);
+		printf("Doodlervspeed: %f\n", doodlerspeed);
+		for (int i = 0; i < availabletokens; i++) {
+			if (doodlerheight + doodlerspeed > 238)
+				platforms[i]->move(-doodlerspeed);
+			if (platforms[i]->getheight() < 0) {
+				delete platforms[i];
+				platforms[i] = new platform(rand()%640, 480, PLATWIDTH, PLATHEIGHT);
+			}
 			doodler->platformsheight[i] = platforms[i]->getheight();
 			doodler->platformspos[i] = platforms[i]->getpos();
 			platforms[i]->draw();
