@@ -14,10 +14,11 @@
 #define PLATHEIGHT 10
 #define DOODLERWIDTH 60
 #define DOODLERHEIGHT 60
-
+#define MAXPLATS 20
 static int *directionptr;
 double rendertime;
-unsigned int availabletokens = 20;
+unsigned int availabletokens = MAXPLATS;
+
 void movecallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (action == GLFW_PRESS) {
 		if (key == GLFW_KEY_LEFT)
@@ -50,20 +51,33 @@ int main(int argc, char* argv[]) {
 	srand(time(nullptr));
 	doodler* doodler = new class doodler(rand()%640, rand()%480%200, DOODLERWIDTH, DOODLERHEIGHT);
 	background bg(320, 0, 1280, 960);
+	unsigned int score = 0;
+	platform* platforms[MAXPLATS];
 
-	platform* platforms[availabletokens];
-	for (int i = 0; i < availabletokens; i++)
+	// Init platforms
+	for (int i = 0; i < MAXPLATS; i++) {
 		platforms[i] = new platform(rand()%640, rand()%480, PLATWIDTH, PLATHEIGHT);
+		availabletokens--;
+	}
+
+	// Destroy impossible platforms
 	int higher = 640;
-	for (int i = 0; i < availabletokens; i++) {
-		do {
-		for (int o = 0; o < availabletokens; o++) {
-			if (platforms[o]->getheight() > platforms[i]->getheight() && platforms[o]->getheight() < higher)
-				higher = platforms[o]->getheight();
+	for (int i = 0; i < MAXPLATS; i++) {
+		while (higher - platforms[i]->getheight() > 220) {
+			for (int o = 0; o < MAXPLATS; o++) {
+				if (platforms[o] == nullptr)
+					continue;
+				if (platforms[i] == nullptr)
+					break;
+				if (platforms[o]->getheight() > platforms[i]->getheight() && platforms[o]->getheight() < higher)
+					higher = platforms[o]->getheight();
+			}
+			if (higher - platforms[i]->getheight() < 220)
+				break;
+			delete platforms[i];
+			platforms[i] = new platform(rand()%640, rand()%480, PLATWIDTH, PLATHEIGHT);
 		}
-		delete platforms[i];
-		platforms[i] = new platform(rand()%640, rand()%480, PLATWIDTH, PLATHEIGHT);
-		} while (higher - platforms[i]->getheight() > 220);
+		higher = 180;
 	}
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -73,17 +87,21 @@ int main(int argc, char* argv[]) {
 		bg.draw();
 		doodler->getheight(&doodlerheight, &doodlerspeed);
 		printf("Doodlervspeed: %f\n", doodlerspeed);
-		for (int i = 0; i < availabletokens; i++) {
-			if (doodlerheight + doodlerspeed > 238)
+		for (int i = 0; i < MAXPLATS - availabletokens; i++) {
+			if (doodlerheight + doodlerspeed > 238) {
 				platforms[i]->move(-doodlerspeed);
+				score += doodlerspeed/10;
+			}
 			if (platforms[i]->getheight() < 0) {
 				delete platforms[i];
-				platforms[i] = new platform(rand()%640, 480, PLATWIDTH, PLATHEIGHT);
+				platforms[i] = new platform(rand()%640, rand()%100 + 480, PLATWIDTH, PLATHEIGHT);
 			}
 			doodler->platformsheight[i] = platforms[i]->getheight();
 			doodler->platformspos[i] = platforms[i]->getpos();
 			platforms[i]->draw();
 		}
+		if (score > 5000)
+			availabletokens=19;
 		doodler->move(direction);
 		doodler->draw();
 		rendertime = std::chrono::nanoseconds(std::chrono::high_resolution_clock::now()-lastframe).count()/1000000000.0;
@@ -94,4 +112,6 @@ int main(int argc, char* argv[]) {
 		glfwPollEvents();
 	}
 	delete doodler;
+	for (int i = 0; i < availabletokens; i++)
+		delete platforms[i];
 }

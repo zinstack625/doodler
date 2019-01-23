@@ -14,7 +14,7 @@ extern double rendertime;
 extern unsigned int availabletokens;
 
 bool doodler::platform_underlying() {
-	for (int i = 0; i < availabletokens; i++) {
+	for (int i = 0; i < 20 - availabletokens; i++) {
 		if (platformspos[i]+30 > x + hspeed * rendertime && platformspos[i]-30 < x + hspeed * rendertime && platformsheight[i] < y && platformsheight[i] > y + vspeed * rendertime) {
 			return 1;
 		}
