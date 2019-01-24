@@ -2,6 +2,7 @@
 #include <chrono>
 #include <thread>
 #include <GL/glew.h>
+#include <GL/gl.h>
 #include <SOIL/SOIL.h>
 #include <cstdio>
 #include "shader.cc"

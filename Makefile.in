@@ -178,8 +178,8 @@ ETAGS = etags
 CTAGS = ctags
 CSCOPE = cscope
 DIST_SUBDIRS = $(SUBDIRS)
-am__DIST_COMMON = $(srcdir)/Makefile.in ar-lib depcomp install-sh \
-	missing
+am__DIST_COMMON = $(srcdir)/Makefile.in ar-lib compile depcomp \
+	install-sh missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -311,7 +311,7 @@ top_srcdir = @top_srcdir@
 SUBDIRS = src
 AM_CPPFLAGS = -Isrc
 doodler_SOURCES = main.cc
-doodler_LDADD = src/libsprite.a -lglfw -lGLEW -lGL -lSOIL
+doodler_LDADD = src/libsprite.a -lglut -lGLEW -lGL -lSOIL
 all: all-recursive
 
 .SUFFIXES:
